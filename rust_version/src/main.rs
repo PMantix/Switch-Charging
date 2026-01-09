@@ -20,7 +20,7 @@ use rotary::{RotaryEncoder, Button};
 // ============================================================================
 
 // Frequency limits (Hz)
-const MAX_FREQ: f64 = 10_000.0;  // Can now go to 10kHz!
+const MAX_FREQ: f64 = 1_000.0;  // Can now go to 10kHz!
 const MIN_FREQ: f64 = 0.1;
 const DEFAULT_FREQ: f64 = 1.0;
 
@@ -145,8 +145,6 @@ struct AppState {
     current_step: usize,
     last_step_time: Instant,
     last_rotary_steps: i32,
-    
-    cached_display: Option<[u8; 4]>,
 }
 
 impl AppState {
@@ -166,8 +164,6 @@ impl AppState {
             current_step: 0,
             last_step_time: Instant::now(),
             last_rotary_steps: 0,
-            
-            cached_display: None,
         }
     }
 

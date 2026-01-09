@@ -3,7 +3,6 @@
 use rppal::gpio::{Gpio, InputPin, Level, Trigger};
 use std::sync::atomic::{AtomicI32, AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 pub struct RotaryEncoder {
     _clk: InputPin,
@@ -42,16 +41,12 @@ impl RotaryEncoder {
 pub struct Button {
     _pin: InputPin,
     pressed: Arc<AtomicBool>,
-    press_time: Arc<std::sync::Mutex<Option<Instant>>>,
 }
 
 impl Button {
     pub fn new(gpio: &Gpio, pin: u8) -> Result<Self, rppal::gpio::Error> {
         let pressed = Arc::new(AtomicBool::new(false));
-        let press_time = Arc::new(std::sync::Mutex::new(None::<Instant>));
-        
         let pressed_clone = Arc::clone(&pressed);
-        let press_time_clone = Arc::clone(&press_time);
         
         let mut input = gpio.get(pin)?.into_input_pullup();
         
@@ -62,7 +57,6 @@ impl Button {
                 Trigger::FallingEdge => {
                     // Button pressed (active low - falling edge)
                     pressed_clone.store(true, Ordering::SeqCst);
-                    *press_time_clone.lock().unwrap() = Some(Instant::now());
                 }
                 Trigger::RisingEdge => {
                     // Button released (rising edge)
@@ -75,30 +69,10 @@ impl Button {
         Ok(Self {
             _pin: input,
             pressed,
-            press_time,
         })
     }
 
     pub fn is_pressed(&self) -> bool {
         self.pressed.load(Ordering::SeqCst)
-    }
-
-    /// Returns how long the button has been held (if currently pressed)
-    pub fn hold_duration(&self) -> Option<Duration> {
-        if self.is_pressed() {
-            self.press_time.lock().unwrap().map(|t| t.elapsed())
-        } else {
-            None
-        }
-    }
-
-    /// Check if button was just released and return press duration
-    pub fn get_press_duration(&self) -> Option<Duration> {
-        if !self.is_pressed() {
-            if let Some(time) = self.press_time.lock().unwrap().take() {
-                return Some(time.elapsed());
-            }
-        }
-        None
     }
 }
