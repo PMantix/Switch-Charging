@@ -7,7 +7,6 @@ use std::time::{Duration, Instant};
 
 pub struct RotaryEncoder {
     _clk: InputPin,
-    _dt: InputPin,
     steps: Arc<AtomicI32>,
 }
 
@@ -19,12 +18,10 @@ impl RotaryEncoder {
         let mut clk = gpio.get(clk_pin)?.into_input_pullup();
         let dt = gpio.get(dt_pin)?.into_input_pullup();
         
-        let dt_pin_ref = gpio.get(dt_pin)?.into_input_pullup();
-        
         // Set up interrupt on CLK falling edge (None = no reset timeout)
         clk.set_async_interrupt(Trigger::FallingEdge, None, move |_event| {
             // Read DT to determine direction
-            if dt_pin_ref.read() == Level::High {
+            if dt.read() == Level::High {
                 steps_clone.fetch_add(1, Ordering::SeqCst);
             } else {
                 steps_clone.fetch_sub(1, Ordering::SeqCst);
@@ -33,7 +30,6 @@ impl RotaryEncoder {
 
         Ok(Self {
             _clk: clk,
-            _dt: dt,
             steps,
         })
     }
