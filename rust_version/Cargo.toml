@@ -1,0 +1,16 @@
+[package]
+name = "switch_charging"
+version = "0.1.0"
+edition = "2021"
+authors = ["PMantix"]
+description = "High-frequency MOSFET switching controller for Raspberry Pi 5"
+
+[dependencies]
+rppal = "0.19"          # Raspberry Pi GPIO library (supports Pi 5)
+ctrlc = "3.4"           # Graceful shutdown handling
+log = "0.4"
+env_logger = "0.11"
+
+[profile.release]
+opt-level = 3
+lto = true              # Link-time optimization for best performance
