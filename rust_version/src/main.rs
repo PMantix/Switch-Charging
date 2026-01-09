@@ -215,6 +215,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut button_was_pressed = false;
     let mut button_press_start: Option<Instant> = None;
     let mut mode_toggled_this_press = false;
+    let mut last_status_print = Instant::now();
+    let mut switch_count: u64 = 0;
 
     // Main loop
     while running.load(Ordering::SeqCst) {
@@ -302,6 +304,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 
                 state.last_step_time = now;
                 state.current_step = (state.current_step + 1) % 4;
+                switch_count += 1;
+            }
+            
+            // Print status every 2 seconds
+            if now.duration_since(last_status_print) >= Duration::from_secs(2) {
+                println!("[Running] Freq: {:.1} Hz | Seq: {} | Switches: {} | Step: {}", 
+                         state.frequency, state.sequence_sel, switch_count, state.current_step);
+                last_status_print = now;
             }
         } else {
             // === SEQUENCE MODE ===
